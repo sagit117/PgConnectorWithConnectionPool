@@ -2,31 +2,37 @@ package ru.axel.connectors.postgres;
 
 import java.sql.SQLException;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main {
     public static void main(String[] args) throws SQLException, InterruptedException {
-        PostgresConnector pgConnector = new PostgresConnector(
+        final Logger logger = Logger.getLogger(Main.class.getName());
+        logger.setLevel(Level.ALL);
+
+        final PostgresConnector pgConnector = new PostgresConnector(
             "jdbc:postgresql://localhost:5432/cookbook",
             "admin-postgres",
             "PasSW0rd",
-            Executors.newWorkStealingPool(10)
+            Executors.newWorkStealingPool(10),
+            logger
         );
 
         pgConnector.use(connection -> {
             String stringQueryCreateTable = "SELECT * FROM \"Users\" WHERE \"ID\" = 1;";
 
-            var query = connection.prepareStatement(stringQueryCreateTable);
-            var result = query.executeQuery();
+            final var query = connection.prepareStatement(stringQueryCreateTable);
+            final var result = query.executeQuery();
 
             result.next();
             System.out.println(result.getInt("ID"));
         });
 
         pgConnector.use(connection -> {
-            String stringQueryCreateTable = "SELECT * FROM \"Users\" WHERE \"ID\" = 1;";
+            final String stringQueryCreateTable = "SELECT * FROM \"Users\" WHERE \"ID\" = 1;";
 
-            var query = connection.prepareStatement(stringQueryCreateTable);
-            var result = query.executeQuery();
+            final var query = connection.prepareStatement(stringQueryCreateTable);
+            final var result = query.executeQuery();
 
             result.next();
             System.out.println(result.getInt("ID"));
@@ -39,8 +45,8 @@ public class Main {
                 pgConnector.use(connection -> {
                     String stringQueryCreateTable = "SELECT * FROM \"Users\" WHERE \"ID\" = 1;";
 
-                    var query = connection.prepareStatement(stringQueryCreateTable);
-                    var result = query.executeQuery();
+                    final var query = connection.prepareStatement(stringQueryCreateTable);
+                    final var result = query.executeQuery();
 
                     result.next();
                     System.out.println("result" + finalI + " = "  + result.getInt("ID"));
@@ -52,6 +58,6 @@ public class Main {
             }
         }
 
-            Thread.sleep(10000);
+        Thread.sleep(10000);
     }
 }
