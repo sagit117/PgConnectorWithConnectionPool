@@ -13,7 +13,7 @@ public class Main {
         final PostgresConnector pgConnector = new PostgresConnector(
             "jdbc:postgresql://localhost:5432/cookbook",
             "admin-postgres",
-            "PasSW0rd",
+            "PasSW0rd".toCharArray(),
             Executors.newWorkStealingPool(10),
             logger
         );

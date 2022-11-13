@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
@@ -12,18 +13,24 @@ import java.util.logging.Logger;
 public final class PostgresConnector {
     private final String dbUrl;
     private final String dbUserName;
-    private final String dbPassword;
+    private final char[] dbPassword;
     private ExecutorService executor;
     private final ConcurrentHashMap<Thread, Connection> connectionPool = new ConcurrentHashMap<>();
     private final Logger logger;
 
-    public PostgresConnector(String url, String userName, String password, Logger logger) {
+    public PostgresConnector(String url, String userName, char[] password, Logger logger) {
         dbUrl = url;
         dbUserName = userName;
         dbPassword = password;
         this.logger = logger;
     }
-    public PostgresConnector(String url, String userName, String password, ExecutorService executorService, Logger logger) {
+    public PostgresConnector(
+        String url,
+        String userName,
+        char[] password,
+        ExecutorService executorService,
+        Logger logger
+    ) {
         dbUrl = url;
         dbUserName = userName;
         dbPassword = password;
@@ -33,7 +40,13 @@ public final class PostgresConnector {
 
     private Connection createConnection() throws SQLException {
         logger.config("Создано соединение для потока: " + Thread.currentThread().getName());
-        return DriverManager.getConnection(dbUrl, dbUserName, dbPassword);
+        final StringBuilder password = new StringBuilder();
+
+        for (char str : dbPassword) {
+            password.append(str);
+        }
+
+        return DriverManager.getConnection(dbUrl, dbUserName, password.toString());
     }
 
     private Connection getConnection() throws SQLException {
