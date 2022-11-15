@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
@@ -49,6 +49,12 @@ public final class PostgresConnector {
         return DriverManager.getConnection(dbUrl, dbUserName, password.toString());
     }
 
+    /**
+     * Метод проверяет существует ли соединение с БД в текущем потоке,
+     * если не существует, вернет новое соединение, иначе существующее.
+     * @return соединение с БД
+     * @throws SQLException ошибка соединения с БД
+     */
     private Connection getConnection() throws SQLException {
         final var currentThread = Thread.currentThread();
 
@@ -67,17 +73,24 @@ public final class PostgresConnector {
         return conn;
     }
 
-    public void use(@NotNull PostgresConnectorUse useMethod) throws SQLException {
+    public <T> @NotNull CompletableFuture<T> use(@NotNull PostgresConnectorUse<T> useMethod) {
         if (executor != null) {
-            executor.execute(() -> {
+             return CompletableFuture.supplyAsync(() -> {
                 try {
-                    useMethod.use(getConnection());
+                    return useMethod.use(getConnection());
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }, executor);
+        } else {
+            return CompletableFuture.supplyAsync(() -> {
+                try {
+                    return useMethod.use(getConnection());
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             });
-        } else {
-            useMethod.use(getConnection());
         }
+
     }
 }

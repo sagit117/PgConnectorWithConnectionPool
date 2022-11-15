@@ -2,7 +2,8 @@ package ru.axel.connectors.postgres;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.concurrent.CompletableFuture;
 
-public interface PostgresConnectorUse {
-    void use(Connection connection) throws SQLException;
+public interface PostgresConnectorUse<T> {
+    T use(Connection connection) throws SQLException;
 }
