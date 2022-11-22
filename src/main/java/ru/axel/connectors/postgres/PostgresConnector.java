@@ -40,13 +40,8 @@ public final class PostgresConnector {
 
     private Connection createConnection() throws SQLException {
         logger.config("Создано соединение для потока: " + Thread.currentThread().getName());
-        final StringBuilder password = new StringBuilder();
 
-        for (char str : dbPassword) {
-            password.append(str);
-        }
-
-        return DriverManager.getConnection(dbUrl, dbUserName, password.toString());
+        return DriverManager.getConnection(dbUrl, dbUserName, String.valueOf(dbPassword));
     }
 
     /**
