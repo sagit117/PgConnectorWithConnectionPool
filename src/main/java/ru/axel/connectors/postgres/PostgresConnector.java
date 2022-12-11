@@ -55,6 +55,7 @@ public final class PostgresConnector {
 
         if (connectionPool.containsKey(currentThread)) {
             final var conn = connectionPool.get(currentThread);
+
             return conn.isClosed() ? addNewConnection(currentThread) : conn;
         } else {
             return addNewConnection(currentThread);

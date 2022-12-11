@@ -20,7 +20,7 @@ public class Main {
         );
 
         CompletableFuture<Integer> id = pgConnector.use((connection) -> {
-            String stringQueryCreateTable = "SELECT * FROM \"Users\" WHERE \"ID\" = 2;";
+            final String stringQueryCreateTable = "SELECT * FROM \"Users\" WHERE \"ID\" = 2;";
 
             final var query = connection.prepareStatement(stringQueryCreateTable);
             final var result = query.executeQuery();
