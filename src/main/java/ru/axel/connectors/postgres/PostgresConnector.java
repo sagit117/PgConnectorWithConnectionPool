@@ -55,6 +55,7 @@ public final class PostgresConnector {
 
         if (connectionPool.containsKey(currentThread)) {
             final var conn = connectionPool.get(currentThread);
+            logger.config("Пытаемся использовать соединение для потока: " + currentThread.getName());
 
             return conn.isClosed() ? addNewConnection(currentThread) : conn;
         } else {
@@ -69,19 +70,25 @@ public final class PostgresConnector {
         return conn;
     }
 
-    public <T> @NotNull CompletableFuture<T> use(@NotNull PostgresConnectorUse<T> useMethod) {
+    public <T> @NotNull CompletableFuture<T> use(@NotNull PostgresConnectorUse<T> useMethod) throws SQLException {
+        final var connection = getConnection();
+
         if (executor != null) {
-             return CompletableFuture.supplyAsync(() -> {
+            return CompletableFuture.supplyAsync(() -> {
+                logger.config("Запрос выполняется в потоке: " + Thread.currentThread().getName());
+
                 try {
-                    return useMethod.use(getConnection());
+                    return useMethod.use(connection);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }, executor);
         } else {
             return CompletableFuture.supplyAsync(() -> {
+                logger.config("Запрос выполняется в потоке: " + Thread.currentThread().getName());
+
                 try {
-                    return useMethod.use(getConnection());
+                    return useMethod.use(connection);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
