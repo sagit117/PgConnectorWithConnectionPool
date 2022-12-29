@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class PostgresConnector {
@@ -39,7 +40,9 @@ public final class PostgresConnector {
     }
 
     private Connection createConnection() throws SQLException {
-        logger.config("Создано соединение для потока: " + Thread.currentThread().getName());
+        if (logger.isLoggable(Level.CONFIG)) {
+            logger.config("Создано соединение для потока: " + Thread.currentThread().getName());
+        }
 
         return DriverManager.getConnection(dbUrl, dbUserName, String.valueOf(dbPassword));
     }
@@ -55,7 +58,9 @@ public final class PostgresConnector {
 
         if (connectionPool.containsKey(currentThread)) {
             final var conn = connectionPool.get(currentThread);
-            logger.config("Пытаемся использовать соединение для потока: " + currentThread.getName());
+            if (logger.isLoggable(Level.CONFIG)) {
+                logger.config("Пытаемся использовать соединение для потока: " + currentThread.getName());
+            }
 
             return conn.isClosed() ? addNewConnection(currentThread) : conn;
         } else {
@@ -75,7 +80,9 @@ public final class PostgresConnector {
 
         if (executor != null) {
             return CompletableFuture.supplyAsync(() -> {
-                logger.config("Запрос выполняется в потоке: " + Thread.currentThread().getName());
+                if (logger.isLoggable(Level.CONFIG)) {
+                    logger.config("Запрос выполняется в потоке: " + Thread.currentThread().getName());
+                }
 
                 try {
                     return useMethod.use(connection);
@@ -85,7 +92,9 @@ public final class PostgresConnector {
             }, executor);
         } else {
             return CompletableFuture.supplyAsync(() -> {
-                logger.config("Запрос выполняется в потоке: " + Thread.currentThread().getName());
+                if (logger.isLoggable(Level.CONFIG)) {
+                    logger.config("Запрос выполняется в потоке: " + Thread.currentThread().getName());
+                }
 
                 try {
                     return useMethod.use(connection);
