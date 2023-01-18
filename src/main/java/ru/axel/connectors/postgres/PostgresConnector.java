@@ -58,7 +58,7 @@ public final class PostgresConnector {
 
     private Connection createConnection() throws SQLException {
         if (logger.isLoggable(Level.CONFIG)) {
-            logger.severe("Создано соединение #" + connectionPool.size());
+            logger.config("Создано соединение #" + connectionPool.size());
         }
 
         return DriverManager.getConnection(dbUrl, dbUserName, String.valueOf(dbPassword));
@@ -80,7 +80,7 @@ public final class PostgresConnector {
             final ConnectionStatus connectionStatus = optionalFreeConnection.get();
 
             if (logger.isLoggable(Level.CONFIG)) {
-                logger.severe("Пытаемся использовать существующие соединение");
+                logger.config("Пытаемся использовать существующие соединение");
             }
 
             return connectionStatus.getConnection() == null ? addNewConnection() : connectionStatus;
@@ -106,7 +106,7 @@ public final class PostgresConnector {
         connectionStatus.setUse(true);
 
         if (logger.isLoggable(Level.CONFIG)) {
-            logger.severe("Запрос к БД выполняется");
+            logger.config("Запрос к БД выполняется");
         }
 
         if (executor != null) {
@@ -122,10 +122,6 @@ public final class PostgresConnector {
             }, executor);
         } else {
             return CompletableFuture.supplyAsync(() -> {
-                if (logger.isLoggable(Level.CONFIG)) {
-                    logger.severe("Запрос выполняется в потоке: " + Thread.currentThread().getName());
-                }
-
                 try {
                     var resut = useMethod.use(connectionStatus.getConnection());
                     connectionStatus.setUse(false);
@@ -142,8 +138,10 @@ public final class PostgresConnector {
         AtomicInteger i = new AtomicInteger();
 
         connectionPool.forEach(connectionStatus -> {
-            System.out.println("Соединение #" + i + ", статус использования: " + connectionStatus.isUse());
-            i.getAndIncrement();
+            if (logger.isLoggable(Level.INFO)) {
+                logger.info("Соединение #" + i + ", статус использования: " + connectionStatus.isUse());
+                i.getAndIncrement();
+            }
         });
     }
 }
